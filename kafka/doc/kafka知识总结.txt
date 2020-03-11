@@ -1,0 +1,32 @@
+生产者producer:
+   1、生产者消息发送消息时分区策略 (1指定分区、  2如果含有key，则使用key的值hash后对分区取模, 3轮询 选一个随机数 取模分区数 后面轮询分区)；
+   2、ack机制  ack一共有三种取值 0：生产者发送消息后不关心broker是否储存好数据，直接发送；
+                             1：生产者发送消息后 leader讲数据写到本地磁盘后，发送ack给生产者，生产者收到ack后继续发送数据；(默认)
+                             -1(ALL):生产者发送消息后 leader将数据写到本地磁盘 然后通知ISR列表中所有的flower同步， 当所有的flower都同步好后， leader向生产者发送ack，
+                               生产者收到ack后继续发送数据；（单会话 单分区）
+   3、重启后id会变
+   4、发送消息的时候是异步发送【main线程， sender线程 还有一个共享变量RecordAccumulator】
+
+
+kafka服务器Broker:
+     1 kafka cluster -> kafka broker
+                            topic（主题 区分消息用的）
+                               partition（分区 可以提高消息生产和消费的性能）: 分区有副本数(可以做高可用) 分区有(leader和flower之分)
+     2 消息的读写请求都是由leader负责，flowe只同步副本；
+     3 ISR同步表(在设置的时间内没有和leader进行通信， leader就会把该flower移除列表)；
+     4 重新选举leader后有HW高水位(对客户端提供的最大的offset)，还有一个LEO(last end offset)最大的offset; 恢复数据的时候，新的leader的HW 所有的flower截取自己的offset到
+       HW，然后再同步leader的HW后的offset;
+
+
+消费者:
+    1、消费者组: 一个分区只能被一个消费者组里的某一个服务消费； offset是根据消费者组+主题+分区确定的；
+    2、消费者的消费分区策略:  1是轮询的策略(轮询是按照消费者组订阅的所有主题， 将所有主题的分区进行排序轮询) 2（默认） range的方式(是按消费组的某一个订阅主题的分区来分配  比如
+       A消费组(3个消费者) 订阅主题T(10) 那么第一个消费者消费1-4 共4个分区 后面的每个各自消费3个分区)
+    3、消费分区策略 在消费组里有消费者增加或者删除的时候， 分区策略会改变；  当一个组里的消费者个数多于分区数的时候 会造成资源浪费，有的消费者分不到消费的分区；
+
+
+kafka producer事务：(跨会话 跨分区)
+  客户端会创建一个全局的TranctionId， 为了管理Transaction kafka引入一个新的组件Tranction Coordinator
+
+
+消费者事务: offset 要考虑跨segment file的情况， segment可能会被清除掉；

@@ -1,0 +1,196 @@
+目前，CentOS 仅发行版本中的内核支持 Docker。
+Docker 运行在 CentOS 7 上，要求系统为64位、系统内核版本为 3.10 以上。
+Docker 运行在 CentOS-6.5 或更高的版本的 CentOS 上，要求系统为64位、系统内核版本为 2.6.32-431 或者更高版本。
+
+使用uname -r查看liunx的版本
+安装步骤：(连外网)
+yum install docker;
+
+启动docker： systemctl start docker
+检查docker是否启动 docker -v
+
+开机自动启动docker(systemctl enable docker)
+
+停止docker： systemctl stop docker
+
+重启docker：sudo systemctl restart docker
+
+卸载docker： yum remove docker-*
+
+
+
+docker搜索镜像: docker search xxx
+
+docker国内拉取镜像加速的地址: docker pull registry.docker-cn.com/library/xx镜像
+
+移除docker景象：docker rmi "镜像id"
+
+移除docker的实例:docker rm "容器id"
+
+查看所有的容器:docker ps -n 5
+
+
+二、停止一个正在运行的容器
+1、docker stop 此方式常常被翻译为优雅的停止容器
+
+docker stop 容器ID或容器名
+参数 -t：关闭容器的限时，如果超时未能关闭则用kill强制关闭，默认值10s，这个时间用于容器的自己保存状态
+docker stop -t=60 容器ID或容器名
+
+2、docker kill
+docker kill 容器ID或容器名 :直接关闭容器
+由此可见stop和kill的主要区别:stop给与一定的关闭时间交由容器自己保存状态，kill直接关闭容器
+想更进一步了解处理机制的可以看下面这篇文章，比较详细但是需要其他方面的
+https://www.jb51.net/article/96617.htm
+
+三、重启一个容器
+docker restart 容器ID或容器名 ：不管容器是否启动，直接重启容器
+1. 首先 docker ps 查看正在运行的容器信息，显示2分钟前启动运行
+2. docker restart 59ec 重启容器
+3. 再次 docker ps 查看容器信息 显示 2秒前启动运行
+
+docker restart 参数
+-t：关闭容器的限时，如果超时未能关闭则用kill强制关闭，默认值10s，这个时间用于容器的自己保存状态
+
+
+
+
+实时查看某个实例的日志：
+docker logs -f -t --tail 100 "容器id"
+
+
+
+1、docker里安装elasticsearch（es权威文档https://www.elastic.co/guide/cn/elasticsearch/guide/current/index.html）
+docker pull registry.docker-cn.com/library/elasticsearch
+查看镜像docker images
+运行镜像 docker run -e ES_JAVA_OPTS="-Xms256m -Xmx256m" -d -p 9200:9200 -p 9300:9300 --name es01 镜像id
+查看实例 docker ps
+
+
+Failed to install module libnvdimmvmxnet3
+
+
+
+
+
+顺便贴一下我运行单节点容器的命令：
+docker run -d \
+-p 9200:9200 \
+-p 9300:9300 \
+-e "discovery.type=single-node" \
+--name es \
+docker.elastic.co/elasticsearch/elasticsearch:6.2.4
+
+
+ES启动可能遇得到的问题：====================================================
+https://blog.csdn.net/qq_36932020/article/details/103466566
+这里提示：vm.max_map_count [65530] is too low, increase to at least [262144]，说max_map_count的值太小了，需要设大到262144
+
+$cat /proc/sys/vm/max_map_count
+65530
+
+#设置最大内存为262144
+$sysctl -w vm.max_map_count=262144
+
+#此时查看
+$cat /proc/sys/vm/max_map_count
+262144
+
+
+
+
+==================zookeeper集群================================================
+启动zookeeper
+ docker run --name zookeeper101 -p 2181:2181 --restart always -d "镜像id"
+
+ zookeeper集群：
+ https://www.cnblogs.com/cocboo/p/9471109.html
+
+ 1 接着我们在 docker-compose.yml 当前目录下运行:
+ COMPOSE_PROJECT_NAME=zk_test docker-compose up
+ 2 本地客户端连接集群zk
+ zkCli.sh -server localhost:2181,localhost:2182,localhost:2183
+ 3查看集群信息
+ echo stat | nc 127.0.0.1 2181
+ echo stat | nc 127.0.0.1 2182
+
+
+
+
+
+
+
+
+
+==================kafka集群================================================
+https://www.cnblogs.com/answerThe/p/11267129.html
+安装好后 kafka的命令是在：
+#在守护式容器中启动一个交互式进程
+(下面这个命令可以和容器中的文件交互)
+docker exec -i -t kafka3 /bin/bash
+cd /opt/kafka_2.12-2.4.0/bin
+
+#启动一个kafka
+ docker run -p 9092:9092 --name kafka1 -d \
+ -e KAFKA_BROKER_ID=0 \
+ -e KAFKA_ZOOKEEPER_CONNECT=192.168.1.5:2181\
+ -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://192.168.1.5:9092\
+ -e KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092 9a5842c217a8
+
+#启动一个kafka
+ docker run -p 9093:9093 --name kafka2 -d \
+ -e KAFKA_BROKER_ID=1 \
+ -e KAFKA_ZOOKEEPER_CONNECT=192.168.1.5:2181 \
+ -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://192.168.1.5:9093 \
+ -e KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9093 9a5842c217a8
+
+#启动一个kafka
+ docker run -p 9094:9094 --name kafka3 -d \
+ -e KAFKA_BROKER_ID=2 \
+ -e KAFKA_ZOOKEEPER_CONNECT=192.168.1.5:2181 \
+ -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://192.168.1.5:9094 \
+ -e KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9094 9a5842c217a8
+
+
+
+./kafka-topics.sh --zookeeper 192.168.1.5:2181 --list
+./kafka-topics.sh --zookeeper 192.168.1.5:2181 --create --topic second --partitions 4 --replication-factor 2
+./kafka-topics.sh --zookeeper 192.168.1.5:2181 --describe --topic second
+./kafka-topics.sh --zookeeper 192.168.1.5:2181 --delete --topic first
+
+./kafka-console-producer.sh --broker-list 192.168.1.5:9094 --topic three
+./kafka-console-consumer.sh --bootstrap-server 192.168.1.5:9092,192.168.1.5:9093,192.168.1.5:9094 --topic three --from-beginning
+./kafka-console-consumer.sh --bootstrap-server 192.168.1.5:9092 --topic three --from-beginning
+
+
+
+
+
+=======redis================
+#启动单个redis
+docker run -p 6379:6379 --name redis001 -d 7eed8df88d3b
+
+=======ke================
+export KE_HOME=/docker/kafka/kafka-eagle-bin-1.2.9/kafka-eagle-web-1.2.9
+export PATH=$KE_HOME/bin
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

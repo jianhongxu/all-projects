@@ -30,9 +30,7 @@ public class ZookeeperBaseTest {
              zooKeeper = new ZooKeeper(connectString, sessionTimeout, new Watcher() {
                 @Override
                 public void process(WatchedEvent watchedEvent) {
-
                     System.out.println("监听到的事件是：。。。。。。"+watchedEvent);
-
                    /*
                      //注册监听事件
                     List<String> children = null;
@@ -76,11 +74,10 @@ public class ZookeeperBaseTest {
 
     /**
      * 获取子节点 并监听节点的变化
-     * @throws KeeperException
-     * @throws InterruptedException
+     * @throws Exception
      */
     @Test
-    public void getChildrenNode() throws KeeperException, InterruptedException {
+    public void getChildrenNode() throws Exception {
         List<String> children = zooKeeper.getChildren("/", true);
         System.out.println("--------------------------------");
         children.forEach(e-> {
@@ -98,18 +95,11 @@ public class ZookeeperBaseTest {
      * @throws InterruptedException
      */
     @Test
-    public void judgeNodeExist() throws KeeperException, InterruptedException {
+    public void judgeNodeExist() throws Exception {
         Stat stat = zooKeeper.exists("/codetest3", false);
         System.out.println(stat==null? "不存在":"存在的");
         if(null != stat){
           zooKeeper.delete("/codetest3",stat.getVersion());
         }
     }
-
-
-
-
-
-
-
 }
