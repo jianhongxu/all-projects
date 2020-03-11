@@ -5,16 +5,19 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Future;
 
 /**
  * @Tile:
  * @Autor: xujianhong
- * @Date: 2020/3/11 18:37
- * @Description: Kafka生产者
+ * @Date: 2020/3/12 0:26
+ * @Description: 有拦截器的生产者
  */
-public class MyProducer {
+public class InterceptorProducer {
+
 
     public static void main(String[] args)  throws Exception{
         //kafka配置信息
@@ -43,6 +46,13 @@ public class MyProducer {
 
         properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
 
+        //添加拦截器配置
+        List<String> interceptors = new ArrayList<>();
+        interceptors.add("com.kafka.interceptor.CountInterceptor");
+        interceptors.add("com.kafka.interceptor.TimeInterceptor");
+
+        properties.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, interceptors);
+
 
 
 
@@ -51,16 +61,12 @@ public class MyProducer {
             //构建消息 编码是utf-8的 window cmd窗口会显示乱码 centos下不会
             ProducerRecord record = new ProducerRecord("frist","xujianhong"+i, i+"messages 中国");
             //发送消息
-            Future<RecordMetadata> future = kafkaProducer.send(record);
-
-            //调用get的时候会阻塞主线程 所以不用最后的关闭资源也会把消息发送出去
-            System.out.println(future.get().partition());
+            kafkaProducer.send(record);
         }
 
         System.out.println("关闭资源");
 
-        //关闭资源
-        //kafkaProducer.close();
+        //关闭资源（关闭资源的时候还会调用 close方法）
+        kafkaProducer.close();
     }
-
 }
