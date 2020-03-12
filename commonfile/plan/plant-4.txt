@@ -4,3 +4,9 @@
 2 zookeeper集群例子
 
 3 elastic-job和jxxjob分布式调度框架
+
+===========20200312=====================================================================================
+https://www.bilibili.com/video/av57936239?p=23
+
+1 UML类图： 用例图 时序图
+2 七大设计原则：D:\code2020\all-projects\design-pattern\src\doc\7大设计原则和23种设计模式.txt
