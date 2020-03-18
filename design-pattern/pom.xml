@@ -11,5 +11,16 @@
 
     <artifactId>design-pattern</artifactId>
 
+    <dependencies>
+
+        <!-- https://mvnrepository.com/artifact/cglib/cglib 引入动态代理  -->
+        <dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib</artifactId>
+            <version>3.2.12</version>
+        </dependency>
+
+    </dependencies>
+
 
 </project>
