@@ -26,8 +26,13 @@ public class Test {
 
         Field[] declaredFields = dog.getClass().getDeclaredFields();
         for (Field declaredField : declaredFields) {
+            Class type = declaredField.getType();
+            System.out.println("是否是String类型的变量:"+(type==String.class));
             System.out.println(declaredField.getType());
-             declaredField.setAccessible(true);
+
+            //设置可以访问权限
+            declaredField.setAccessible(true);
+
              //循环所有的值
             System.out.println(declaredField.getName().toUpperCase());
             for (String o : map.keySet()) {
