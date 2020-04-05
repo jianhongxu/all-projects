@@ -25,8 +25,6 @@ public class Client {
 
 
 
-
-
         //jdk中的comparator接口  Arrays
         Integer[] data = {12,35,56,89,21,12,457,2231,7};
         Comparator<Integer> comparator = new Comparator<Integer>() {
@@ -42,6 +40,7 @@ public class Client {
 
         //排序
         Arrays.sort(data, comparator);
+
         //输出
         System.out.println(Arrays.toString(data));
 
